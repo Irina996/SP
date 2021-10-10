@@ -1,0 +1,4 @@
+*.pdf
+*/Debug
+*/*/Debug
+*/.vs
