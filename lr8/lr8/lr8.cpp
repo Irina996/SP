@@ -6,8 +6,8 @@
 
 #define MAX_LOADSTRING 100
 
-#define BUTTON_DRAW_ID 1
-#define BUTTON_CLEAR_ID 2
+#define DRAW_BTN 3
+#define ERASE_BTN 4
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -105,10 +105,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   HWND addButton = CreateWindow(L"BUTTON", NULL, WS_VISIBLE | WS_CHILD | BS_OWNERDRAW | BS_PUSHBUTTON,
-       20, 320, 60, 60, hWnd, (HMENU)BUTTON_DRAW_ID, NULL, NULL);
-   HWND clearButton = CreateWindow(L"BUTTON", NULL, WS_VISIBLE | WS_CHILD | BS_OWNERDRAW | BS_PUSHBUTTON,
-       90, 320, 60, 60, hWnd, (HMENU)BUTTON_CLEAR_ID, NULL, NULL);
+   HWND drawButton = CreateWindow(L"BUTTON", NULL, WS_VISIBLE | WS_CHILD | BS_OWNERDRAW | BS_PUSHBUTTON,
+       650, 10, 60, 60, hWnd, (HMENU)DRAW_BTN, NULL, NULL);
+   HWND eraseButton = CreateWindow(L"BUTTON", NULL, WS_VISIBLE | WS_CHILD | BS_OWNERDRAW | BS_PUSHBUTTON,
+       720, 10, 60, 60, hWnd, (HMENU)ERASE_BTN, NULL, NULL);
 
 
    if (!hWnd)
@@ -148,11 +148,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
-            case BUTTON_DRAW_ID:
+            case DRAW_BTN:
                 isVisible = true;
                 InvalidateRect(hWnd, NULL, true);
                 break;
-            case BUTTON_CLEAR_ID:
+            case ERASE_BTN:
                 isVisible = false;
                 InvalidateRect(hWnd, NULL, true);
                 break;
@@ -169,50 +169,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         switch (draw->CtlID)
         {
-        case BUTTON_DRAW_ID:
+        case DRAW_BTN:
         {
             HDC hdc = draw->hDC;
 
             if (draw->itemAction == ODA_SELECT) {
-                brush = CreateSolidBrush(RGB(0, 0, 255));
+                brush = CreateSolidBrush(RGB(70, 70, 70));
+                SetBkColor(hdc, RGB(70, 70, 70));
             }
             else {
-                brush = CreateSolidBrush(RGB(0, 255, 0));
+                brush = CreateSolidBrush(RGB(66, 135, 245));
+                SetBkColor(hdc, RGB(66, 135, 245));
             }
-
-
-            pen = CreatePen(BS_SOLID, 2, RGB(0, 0, 0));
+            pen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
 
             SelectObject(hdc, brush);
             SelectObject(hdc, pen);
+            
+            Rectangle(hdc, 0, 0, 60, 60);
 
-            Ellipse(hdc, 0, 0, 60, 60);
-            MoveToEx(hdc, 10, 30, NULL);
-            LineTo(hdc, 50, 30);
-            MoveToEx(hdc, 30, 10, NULL);
-            LineTo(hdc, 30, 50);
+            RECT rectangle;
+            SetRect(&rectangle, 0, 0, 60, 60);
+            DrawText(hdc, L"DRAW", strlen("DRAW"), &rectangle, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
         }
         break;
-        case BUTTON_CLEAR_ID:
+        case ERASE_BTN:
         {
             HDC hdc = draw->hDC;
 
             if (draw->itemAction == ODA_SELECT) {
-                brush = CreateSolidBrush(RGB(0, 0, 255));
+                brush = CreateSolidBrush(RGB(70, 70, 70));
+                SetBkColor(hdc, RGB(70, 70, 70));
             }
             else {
-                brush = CreateSolidBrush(RGB(255, 0, 0));
+                brush = CreateSolidBrush(RGB(66, 135, 245));
+                SetBkColor(hdc, RGB(66, 135, 245));
             }
-            pen = CreatePen(BS_SOLID, 2, RGB(0, 0, 0));
+            pen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
 
             SelectObject(hdc, brush);
             SelectObject(hdc, pen);
 
-            Ellipse(hdc, 0, 0, 60, 60);
-            MoveToEx(hdc, 20, 20, NULL);
-            LineTo(hdc, 40, 40);
-            MoveToEx(hdc, 40, 20, NULL);
-            LineTo(hdc, 20, 40);
+            Rectangle(hdc, 0, 0, 60, 60);
+
+            RECT rectangle;
+            SetRect(&rectangle, 0, 0, 60, 60);
+            DrawText(hdc, L"ERASE", strlen("ERASE"), &rectangle, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
         }
         break;
         default:
@@ -225,38 +227,79 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HDC hdc = BeginPaint(hWnd, &ps);
         if (isVisible)
         {
-            HBRUSH brush = CreateSolidBrush(RGB(255, 255, 00));
+            HPEN pen = CreatePen(PS_SOLID, 5, RGB(0, 0, 0));
+            SelectObject(hdc, pen);
+            HBRUSH brush = CreateSolidBrush(RGB(5, 30, 80));
             SelectObject(hdc, brush);
 
-            Ellipse(hdc, 30, 30, 300, 300);
+            Rectangle(hdc, 10, 10, 510, 210);
 
-            brush = CreateSolidBrush(RGB(0, 255, 255));
+            brush = CreateSolidBrush(RGB(100, 140, 200));
             SelectObject(hdc, brush);
-            Ellipse(hdc, 70, 90, 130, 150);
-            Ellipse(hdc, 190, 90, 250, 150);
+            Rectangle(hdc, 110, 30, 350, 90);
 
-            POINT points[3];
             brush = CreateSolidBrush(RGB(0, 0, 0));
             SelectObject(hdc, brush);
-            MoveToEx(hdc, 80, 250, NULL);
-            points[0].x = 80;
-            points[0].y = 250;
-            points[1].x = 170;
-            points[1].y = 280;
-            points[2].x = 250;
-            points[2].y = 250;
-            PolyBezierTo(hdc, points, 3);
+            pen = CreatePen(PS_SOLID, 5, RGB(60, 60, 60));
+            SelectObject(hdc, pen);
+            Ellipse(hdc, 50, 180, 120, 240);
+            Ellipse(hdc, 390, 180, 460, 240);
 
-            MoveToEx(hdc, 80, 250, NULL);
-            points[0].x = 80;
-            points[0].y = 250;
-            points[1].x = 170;
-            points[1].y = 350;
-            points[2].x = 250;
-            points[2].y = 250;
-            PolyBezierTo(hdc, points, 3);
+            pen = CreatePen(PS_SOLID, 5, RGB(0, 0, 0));
+            SelectObject(hdc, pen);
+            POINT points[5];
+            brush = CreateSolidBrush(RGB(10, 80, 10));
+            SelectObject(hdc, brush);
+            MoveToEx(hdc, 510, 30, NULL);
+            points[0].x = 510;
+            points[0].y = 30;
+            points[1].x = 580;
+            points[1].y = 30;
+            points[2].x = 650;
+            points[2].y = 130;
+            points[3].x = 650;
+            points[3].y = 210;
+            points[4].x = 510;
+            points[4].y = 210;
+            Polygon(hdc, points, 5);
 
+            brush = CreateSolidBrush(RGB(100, 140, 200));
+            SelectObject(hdc, brush);
+            MoveToEx(hdc, 530, 50, NULL);
+            points[0].x = 530;
+            points[0].y = 50;
+            points[1].x = 560;
+            points[1].y = 50;
+            points[2].x = 620;
+            points[2].y = 110;
+            points[3].x = 620;
+            points[3].y = 130;
+            points[4].x = 530;
+            points[4].y = 130;
+            Polygon(hdc, points, 5);
 
+            pen = CreatePen(PS_SOLID, 5, RGB(50, 50, 50));
+            SelectObject(hdc, pen);
+            brush = CreateSolidBrush(RGB(0, 0, 0));
+            SelectObject(hdc, brush);
+            Ellipse(hdc, 570, 180, 640, 240);
+
+            pen = CreatePen(PS_SOLID, 5, RGB(10, 200, 130));
+            SelectObject(hdc, pen);
+
+            MoveToEx(hdc, 90, 75, NULL);
+            ArcTo(hdc, 50, 70, 190, 180, 90, 90, 160, 160);
+            MoveToEx(hdc, 400, 100, NULL);
+            ArcTo(hdc, 400, 70, 490, 160, 400, 110, 490, 70);
+
+            MoveToEx(hdc, 210, 95, NULL);
+            LineTo(hdc, 270, 130);
+            MoveToEx(hdc, 290, 100, NULL);
+            LineTo(hdc, 185, 200);
+            MoveToEx(hdc, 320, 110, NULL);
+            LineTo(hdc, 380, 170);
+            MoveToEx(hdc, 250, 150, NULL);
+            LineTo(hdc, 320, 150);
         }
         EndPaint(hWnd, &ps);
         }

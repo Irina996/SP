@@ -151,6 +151,8 @@
     <ResourceCompile Include="lr8.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\..\bmpes\erase.bmp" />
+    <Image Include="car.bmp" />
     <Image Include="lr8.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
