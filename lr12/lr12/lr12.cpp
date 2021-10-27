@@ -16,7 +16,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HANDLE threads[3];
 HANDLE event;
 HWND mainWnd;
-bool figure[3] = { false };
+//bool figure[3] = { false };
 CRITICAL_SECTION CriticalSection;
 
 // Forward declarations of functions included in this code module:
@@ -101,19 +101,25 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-DWORD WINAPI ThreadProc() {
+struct ThreadArgs {
+    bool draw;
+} args[3];
+
+DWORD WINAPI ThreadProc(ThreadArgs* args) {
     for (;;) {
         DWORD waitResult = WaitForSingleObject(event, 10);
         if (waitResult == WAIT_OBJECT_0) { 
-            for (int i = 0; i < 3; i++)
-            {
-                figure[i] = true;
-                Sleep(1000);
-                figure[i] = false;
-            }
+            EnterCriticalSection(&CriticalSection);
+
+            args->draw = true;
+            Sleep(1000);
+            args->draw = false;
             while (!ResetEvent(event)) {}
+
+            LeaveCriticalSection(&CriticalSection);
         }
     }
+
     return 0;
 }
 
@@ -146,7 +152,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    for (int i = 0; i < 3; i++)
    {
-       threads[i] = CreateThread(nullptr, 0u, (LPTHREAD_START_ROUTINE)ThreadProc, nullptr, 0, nullptr);
+       args[i].draw = false;
+       threads[i] = CreateThread(nullptr, 0u, (LPTHREAD_START_ROUTINE)ThreadProc, args + i, 0, nullptr);
    }
 
    if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
@@ -199,14 +206,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
-            EnterCriticalSection(&CriticalSection);
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             
             HBRUSH brush = CreateSolidBrush(RGB(0, 0, 255));
             SelectObject(hdc, brush);
 
-            if (figure[0])
+            if (args[0].draw)
             {
                 POINT points[10];
                 int length = 50;
@@ -244,7 +250,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 Polygon(hdc, points, 10);
 
             }
-            if (figure[1])
+            if (args[1].draw)
             {
                 POINT points[4];
                 points[0].x = 200;
@@ -259,14 +265,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 MoveToEx(hdc, points[0].x, points[0].y, NULL);
                 Polygon(hdc, points, 4);
             }
-            if (figure[2])
+            if (args[2].draw)
             {
                 MoveToEx(hdc, 250, 250, NULL);
                 Ellipse(hdc, 200, 200, 300, 300);
             }
 
             EndPaint(hWnd, &ps);
-            LeaveCriticalSection(&CriticalSection);
 
         }
         break;
